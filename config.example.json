@@ -1,0 +1,17 @@
+{
+  "_comment": "これを config.json という名前でコピーして使う。書かなかったキーは既定値になる",
+  "host": "auto",
+  "port": 9000,
+  "interval_s": 2.0,
+  "keepalive_s": 10.0,
+  "temp_min_c": 30.0,
+  "temp_max_c": 95.0,
+  "param_prefix": "/avatar/parameters/",
+  "param_battery": "FrameBattery",
+  "param_temp": "FrameTemp",
+  "param_charging": "FrameCharging",
+  "chatbox": false,
+  "chatbox_interval_s": 10.0,
+  "chatbox_format": "Frame 🔋{battery}%{charging} 🌡{temp:.0f}°C",
+  "log_every_s": 60.0
+}

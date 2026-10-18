@@ -1,0 +1,13 @@
+[Unit]
+Description=frame-vitals-osc (Steam Frame battery / temperature to VRChat over OSC)
+# 他の Frame ツールと同じく、SteamVR が動いている間だけ動かす
+After=steamvr.service
+PartOf=steamvr.service
+
+[Service]
+ExecStart=/usr/bin/python3 %h/.local/opt/frame-vitals-osc/frame-vitals-osc.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=steamvr.service
