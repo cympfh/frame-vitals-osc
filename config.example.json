@@ -6,6 +6,8 @@
   "keepalive_s": 10.0,
   "temp_min_c": 30.0,
   "temp_max_c": 95.0,
+  "temp_smoothing": 0.3,
+  "temp_change_c": 1.0,
   "param_prefix": "/avatar/parameters/",
   "param_battery": "FrameBattery",
   "param_temp": "FrameTemp",

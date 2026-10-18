@@ -16,7 +16,8 @@ Steam Frame の **バッテリー残量・充電中かどうか・SoC（CPU/GPU�
 | `/avatar/parameters/FrameCharging` | bool | 充電中（または満充電でつながっている）なら true |
 | `/chatbox/input`（任意・既定オフ） | string, bool, bool | 例: `Frame 🔋73% ⚡ 🌡48°C`。最短 10 秒おき、通知音なし |
 
-- 値は 2 秒ごとに読み、変わったときと、変わらなくても 10 秒ごとに送ります（VRChat 側でアバターを切り替えても値が戻るように）。
+- 値は 2 秒ごとに読み、変わったとき（温度は 1 °C 以上）と、変わらなくても 10 秒ごとに送ります（VRChat 側でアバターを切り替えても値が戻るように）。
+- いちばん熱いコアの温度は一瞬で 10 °C 以上跳ねるので、指数移動平均でなめらかにしてから送ります。
 - パラメーター名は設定で変えられます。アバター側に同じ名前のパラメーターを用意してください（無ければ VRChat は無視するだけです）。
 - フレームレート（fps）は今は送りません。SteamVR から安く取る方法が無いためです（frame-perf-overlay は OpenVR 経由で取得しています）。
 
@@ -42,7 +43,7 @@ Frame の上で、ふつうのユーザーで:
 
 ```sh
 git clone <このリポジトリ> /tmp/frame-vitals-osc
-/tmp/frame-vitals-osc/install.sh
+bash /tmp/frame-vitals-osc/install.sh
 ```
 
 `~/.local/opt/frame-vitals-osc/` にスクリプトと `config.json`（無いときだけ例からコピー）が入り、
@@ -82,6 +83,8 @@ journalctl --user -u frame-vitals-osc -f
 | `interval_s` | 2.0 | 値を読む間隔（秒） |
 | `keepalive_s` | 10.0 | 変化がなくても送り直す間隔（秒） |
 | `temp_min_c` / `temp_max_c` | 30 / 95 | FrameTemp が 0.0 / 1.0 になる温度 |
+| `temp_smoothing` | 0.3 | 温度の指数移動平均の係数（1 でなめらかにしない） |
+| `temp_change_c` | 1.0 | 温度がこれだけ変わったら、すぐ送る（°C） |
 | `param_battery` など | `FrameBattery` など | アバターパラメーター名 |
 | `chatbox` | false | チャットボックスに表示するか |
 | `chatbox_interval_s` | 10.0 | チャットボックスの間隔（10 秒未満は 10 秒になる） |

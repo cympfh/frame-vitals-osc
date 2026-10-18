@@ -14,7 +14,7 @@ import socket
 import struct
 import time
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 DEFAULT_CONFIG = {
@@ -24,6 +24,8 @@ DEFAULT_CONFIG = {
     "keepalive_s": 10.0,         # 値が変わらなくても、この間隔で送り直す（秒）
     "temp_min_c": 30.0,          # FrameTemp = 0.0 になる温度
     "temp_max_c": 95.0,          # FrameTemp = 1.0 になる温度
+    "temp_smoothing": 0.3,       # 温度のなめらかさ（指数移動平均の係数 0〜1。1 でなめらかにしない）
+    "temp_change_c": 1.0,        # 温度がこれだけ変わったら、keepalive を待たずに送る（°C）
     "param_prefix": "/avatar/parameters/",
     "param_battery": "FrameBattery",
     "param_temp": "FrameTemp",
@@ -204,6 +206,8 @@ def main(argv=None):
     last_sent, last_vals, last_chat, last_log = 0.0, None, -1e9, time.monotonic()
     counters = {"sent": 0, "errors": 0}
     t0 = time.monotonic()
+    temp_ema = None
+    alpha = max(0.01, min(1.0, float(cfg["temp_smoothing"])))
 
     def send(addr, *args):
         if a.verbose or a.dry_run:
@@ -224,13 +228,18 @@ def main(argv=None):
         status = read(f"{bat}/status") if bat else None
         battery = max(0.0, min(1.0, int(cap) / 100.0)) if cap and cap.isdigit() else None
         charging = status in ("Charging", "Full")
-        temp = soc_temp(zones)
+        raw_temp = soc_temp(zones)
+        if raw_temp is not None:
+            # いちばん熱いコアの温度は一瞬で 10 °C 以上跳ねるので、なめらかにしてから送る
+            temp_ema = raw_temp if temp_ema is None else temp_ema + alpha * (raw_temp - temp_ema)
+        temp = None if temp_ema is None else round(temp_ema, 1)
         tnorm = None
         if temp is not None:
             span = max(1e-6, cfg["temp_max_c"] - cfg["temp_min_c"])
             tnorm = max(0.0, min(1.0, (temp - cfg["temp_min_c"]) / span))
 
-        vals = (battery, charging, None if tnorm is None else round(tnorm, 2))
+        step = max(0.1, float(cfg["temp_change_c"]))
+        vals = (battery, charging, None if temp is None else round(temp / step))
         if vals != last_vals or now - last_sent >= cfg["keepalive_s"]:
             if battery is not None:
                 send(pre + cfg["param_battery"], float(battery))
