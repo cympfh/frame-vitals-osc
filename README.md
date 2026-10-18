@@ -48,3 +48,5 @@ curl -fsSL https://raw.githubusercontent.com/cympfh/frame-vitals-osc/main/instal
 - Python 3 の標準ライブラリだけで動き、sudo は使いません
 
 </details>
+
+ほかの Steam Frame 用ツール: [frame-tools](https://github.com/cympfh/frame-tools)
