@@ -1,5 +1,5 @@
 {
-  "_comment": "これを config.json という名前でコピーして使う。書かなかったキーは既定値になる",
+  "_comment": "~/.config/frame-vitals-osc/config.json の中身のサンプル。書かなかった項目は既定値になります",
   "host": "auto",
   "port": 9000,
   "interval_s": 2.0,

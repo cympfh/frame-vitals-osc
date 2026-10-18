@@ -14,8 +14,16 @@ import socket
 import struct
 import time
 
-VERSION = "0.1.1"
+VERSION = "0.2.0"
 HERE = os.path.dirname(os.path.abspath(__file__))
+CONFIG_PATH = os.path.join(os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config"),
+                           "frame-vitals-osc", "config.json")
+
+
+def default_config_path():
+    """~/.config/frame-vitals-osc/config.json。無ければ 0.1.x の置き場所（本体の隣）。"""
+    old = os.path.join(HERE, "config.json")
+    return CONFIG_PATH if os.path.exists(CONFIG_PATH) or not os.path.exists(old) else old
 
 DEFAULT_CONFIG = {
     "host": "auto",              # "auto" = frameeyeosc と同じ送り先。または "192.168.1.10" のような IP
@@ -172,7 +180,7 @@ def resolve_target(cfg, override=None):
 # ---------------------------------------------------------------- 本体
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Steam Frame のバイタルを VRChat に OSC で送る")
-    ap.add_argument("--config", default=os.path.join(HERE, "config.json"), help="設定ファイル（既定: このフォルダの config.json）")
+    ap.add_argument("--config", default=None, help=f"設定ファイル（既定: {CONFIG_PATH}）")
     ap.add_argument("--target", help="送り先 host:port（設定より優先）")
     ap.add_argument("--once", action="store_true", help="1 回だけ読んで送って終わる")
     ap.add_argument("--dry-run", action="store_true", help="送らずに表示だけ")
@@ -182,7 +190,7 @@ def main(argv=None):
     ap.add_argument("--version", action="version", version=f"frame-vitals-osc {VERSION}")
     a = ap.parse_args(argv)
 
-    cfg = load_config(a.config)
+    cfg = load_config(a.config or default_config_path())
     if a.chatbox:
         cfg["chatbox"] = True
     host, port, why = resolve_target(cfg, a.target)
